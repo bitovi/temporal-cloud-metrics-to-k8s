@@ -1,0 +1,9 @@
+apiVersion: v2
+name: temporal-cloud-metrics-to-k8s
+description: A Helm chart to enable access to metrics from Temporal Cloud within your cluster.
+
+type: application
+
+version: 0.1.0
+
+appVersion: "0.1.0"

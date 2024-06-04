@@ -1,0 +1,12 @@
+temporal:
+  namespace:
+  address:
+  tls.cert:
+  tls.key:
+
+adapter:
+  config: config.yaml
+
+worker:
+  deployment: temporal-worker
+  demo: false

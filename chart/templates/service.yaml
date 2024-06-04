@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-cloud-metrics-adapter
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  - name: https
+    port: 443
+    targetPort: 6443
+  selector:
+    app: temporal-cloud-metrics-adapter

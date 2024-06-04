@@ -1,0 +1,43 @@
+{{- if .Values.worker.demo }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: temporal-worker
+  name: temporal-worker
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: temporal-worker
+  template:
+    metadata:
+      labels:
+        app: temporal-worker
+      name: temporal-worker
+    spec:
+      containers:
+      - name: temporal-worker
+        image: bitovi/temporal-example-workers:golang-hello-world-latest
+        imagePullPolicy: Always
+        ports: []
+        volumeMounts:
+        - name: mtls-certs
+          mountPath: "/app/certs"
+          readOnly: true
+        env:
+        - name: TEMPORAL_NAMESPACE
+          value: "{{ .Values.temporal.namespace }}"
+        - name: TEMPORAL_CERT_PATH
+          value: "/app/certs/client.crt"
+        - name: TEMPORAL_KEY_PATH
+          value: "/app/certs/client.key"
+        - name: TEMPORAL_PORT
+          value: "{{ .Values.temporal.address }}"
+        - name: TEMPORAL_QUEUE
+          value: autoscaler_demo
+      volumes:
+      - name: mtls-certs
+        secret:
+          secretName: mtls-certs
+{{- end }}

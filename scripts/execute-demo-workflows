@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# TODO update address and namespace to use args or env vars
+
+set -e
+
+# Check if an argument is provided
+if [ -z "$1" ]; then
+  echo "Please provide a number as an argument."
+  exit 1
+fi
+
+# Check if the provided argument is a valid number
+if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+  echo "The argument must be a valid number."
+  exit 1
+fi
+
+# Loop to echo "hello world" the specified number of times
+for ((i = 1; i <= $1; i++)); do
+  temporal workflow start \
+    --task-queue=autoscaler_demo  \
+    --type=Workflow \
+    --address=$TEMPORAL_ADDRESS \
+    --namespace=$TEMPORAL_NAMESPACE \
+    --tls-cert-path=$PWD/certs/client.crt \
+    --tls-key-path=$PWD/certs/client.key > /dev/null &
+done
+
+wait
+
+echo "Started $1 demo workflows!"

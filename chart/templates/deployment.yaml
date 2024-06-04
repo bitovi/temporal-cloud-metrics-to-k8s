@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: temporal-cloud-metrics-adapter
+  name: temporal-cloud-metrics-adapter
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-cloud-metrics-adapter
+  template:
+    metadata:
+      labels:
+        app: temporal-cloud-metrics-adapter
+      name: temporal-cloud-metrics-adapter
+    spec:
+      serviceAccountName: temporal-cloud-metrics-adapter
+      containers:
+      - name: temporal-cloud-metrics-adapter
+        image: bitovi/temporal-cloud-metrics-to-k8s:latest
+        imagePullPolicy: Always
+        command:
+        - ./temporal-cloud-metrics-adapter
+        - --secure-port=6443
+        - --cert-dir=/var/run/serving-cert
+        - --v=10
+        ports:
+        - containerPort: 6443
+          name: https
+        volumeMounts:
+        - mountPath: /tmp
+          name: temp
+          readOnly: false
+        - mountPath: /var/run/serving-cert
+          name: serving-cert
+          readOnly: false
+        - name: mtls-certs
+          mountPath: "/app/certs"
+          readOnly: true
+        - name: config
+          mountPath: "/app/tcma"
+          readOnly: true
+        env: []
+        readinessProbe:
+          exec:
+            command:
+              - sh
+              - -c
+              - >
+                curl -k -f https://localhost:6443/healthz || exit 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: temp
+        emptyDir: {}
+      - name: serving-cert
+        emptyDir: {}
+      - name: mtls-certs
+        secret:
+          secretName: mtls-certs
+      - name: config
+        configMap:
+          name: adapter-configuration

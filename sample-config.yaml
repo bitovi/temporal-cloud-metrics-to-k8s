@@ -1,0 +1,42 @@
+version: "1"
+temporal_cloud:
+  metrics_endpoint: https://123.tmprl.cloud/prometheus
+  tls:
+    # ca: /app/certs/client.ca
+    cert: /app/certs/client.crt
+    key: /app/certs/client.key
+metrics:
+  temporal_cloud_sync_match_rate:
+    query: >
+      sum(
+        clamp_min(
+          (
+            sum by(temporal_namespace) (
+              rate(
+                temporal_cloud_v0_poll_success_count{}[1m]
+              )
+            )
+            -
+            sum by(temporal_namespace) (
+                rate(
+                    temporal_cloud_v0_poll_success_sync_count{}[1m]
+                )
+            )
+          ),
+          0
+        )
+      ) or vector(0)
+  temporal_cloud_service_latency:
+    query: >
+      sum(
+        clamp_min(
+          sum by(temporal_namespace) (
+            rate(temporal_cloud_v0_service_latency_count{}[1m])
+          )
+          -
+          sum by(temporal_namespace) (
+            rate(temporal_cloud_v0_service_latency_sum{}[1m])
+          ),
+          0
+        )
+      ) or vector(0)
