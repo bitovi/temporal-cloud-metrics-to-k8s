@@ -8,8 +8,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ .Values.worker.deployment }}
-  minReplicas: 1
-  maxReplicas: 20
+  minReplicas: 2
+  maxReplicas: 50
   metrics:
   - type: External
     external:
@@ -20,19 +20,19 @@ spec:
             temporal_namespace: "{{ .Values.temporal.namespace }}"
       target:
         type: Value
-        value: 50m
+        value: 1500m
   behavior:
     scaleUp:
-      stabilizationWindowSeconds: 10
+      stabilizationWindowSeconds: 5
       selectPolicy: Max
       policies:
         - type: Pods
-          value: 5
-          periodSeconds: 10
+          value: 10
+          periodSeconds: 5
     scaleDown:
-      stabilizationWindowSeconds: 60
+      stabilizationWindowSeconds: 5
       selectPolicy: Max
       policies:
         - type: Pods
-          value: 3
-          periodSeconds: 30
+          value: 10
+          periodSeconds: 5

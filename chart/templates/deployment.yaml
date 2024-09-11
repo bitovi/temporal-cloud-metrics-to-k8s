@@ -36,7 +36,7 @@ spec:
         - mountPath: /var/run/serving-cert
           name: serving-cert
           readOnly: false
-        - name: mtls-certs
+        - name: tcm-mtls-certs
           mountPath: "/app/certs"
           readOnly: true
         - name: config
@@ -59,9 +59,9 @@ spec:
         emptyDir: {}
       - name: serving-cert
         emptyDir: {}
-      - name: mtls-certs
+      - name: tcm-mtls-certs
         secret:
-          secretName: mtls-certs
+          secretName: tcm-mtls-certs
       - name: config
         configMap:
           name: adapter-configuration

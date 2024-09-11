@@ -4,6 +4,14 @@ Bring Temporal Cloud Metrics into your Kubernetes cluster to inform autoscaling 
 
 ![Metrics Dashboard Demo](./img/metrics-dashboard.jpg)
 
+## How it works
+
+This project is essentially just a proxy server. Kubernetes makes an HTTP call which is handled by this service which in turn pulls metrics from Temporal Cloud, converts them to the format that Kubernetes expects, and returns them to k8s.
+
+Kubernetes will poll our service for metrics which become available to HPA's living in the same Kubernetes namespace. 
+
+![Architecture Diagram](./img/diagram.png)
+
 ## Setup
 
 ### Prerequisites
@@ -41,7 +49,7 @@ sum by(temporal_namespace) (
     temporal_cloud_v0_poll_success_sync_count{}[1m]
   )
 )
--
+/
 sum by(temporal_namespace) (
   rate(
     temporal_cloud_v0_poll_success_count{}[1m]
@@ -51,27 +59,40 @@ sum by(temporal_namespace) (
 
 __After__
 
-We've made two important changes here: (1) we've swapped the places of the two underlying metrics to invert the resulting number so it will now be positive and increase as the Sync Match Rate falls, (2) use clamp_min to set a lower bound of zero, and (3) we default the resulting value to zero in the event no data points are available within the specified time window.
+We've made two important changes here: (1) we've swapped the places of the two underlying metrics to invert the resulting number so it will now be positive and increase as the Sync Match Rate falls, and (2) we default the resulting value to `1` in the event no data points are available within the specified time window.
+
+The result is a decimal that starts at `1` when there is a perfect Sync Match Rate and rises as the Sync Match Rate is declines. 
 
 ```
-sum(
-  clamp_min(
-    (
-      sum by(temporal_namespace) (
-        rate(
-          temporal_cloud_v0_poll_success_count{}[1m]
-        )
-      )
-      -
-      sum by(temporal_namespace) (
-          rate(
-              temporal_cloud_v0_poll_success_sync_count{}[1m]
-          )
-      )
-    ),
-    0
+(
+  sum by(temporal_namespace) (
+    rate(
+      temporal_cloud_v0_poll_success_count{
+        temporal_namespace="bitovi.x72yu"
+      }[1m]
+    )
   )
-) or vector(0)
+  /
+  sum by(temporal_namespace) (
+    rate(
+      temporal_cloud_v0_poll_success_sync_count{
+        temporal_namespace="bitovi.x72yu"
+      }[1m]
+    )
+  )
+)
+unless
+(
+  sum by(temporal_namespace) (
+    rate(
+      temporal_cloud_v0_poll_success_sync_count{
+        temporal_namespace="bitovi.x72yu"
+      }[1m]
+    )
+  ) == 0
+)
+or label_replace(vector(1), "temporal_namespace", "bitovi.x72yu", "", "")
+
 ```
 
 ### Step 3: HPA
@@ -175,8 +196,8 @@ You can adjust the how quickly the cluster scales up and down our workers.
             temporal_namespace: xyz.123
       target:
         type: Value
-        # Scale up when the target metric exceeds 50 milli values (0.05)
-        value: 50m
+        # Scale up when the target metric exceeds 1500 milli values (1.5)
+        value: 1500m
   behavior:
     scaleUp:
       # The highest value in the last 10 seconds will be used to determine the need to scale up

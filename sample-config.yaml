@@ -8,35 +8,22 @@ temporal_cloud:
 metrics:
   temporal_cloud_sync_match_rate:
     query: >
-      sum(
-        clamp_min(
-          (
-            sum by(temporal_namespace) (
-              rate(
-                temporal_cloud_v0_poll_success_count{}[1m]
-              )
-            )
-            -
-            sum by(temporal_namespace) (
-                rate(
-                    temporal_cloud_v0_poll_success_sync_count{}[1m]
-                )
-            )
-          ),
-          0
-        )
-      ) or vector(0)
-  temporal_cloud_service_latency:
-    query: >
-      sum(
-        clamp_min(
-          sum by(temporal_namespace) (
-            rate(temporal_cloud_v0_service_latency_count{}[1m])
+      (
+        sum by(temporal_namespace) (
+          rate(
+            temporal_cloud_v0_poll_success_count{
+              temporal_namespace="123.xyz",
+              task_queue="hello_world"
+            }[1m]
           )
-          -
-          sum by(temporal_namespace) (
-            rate(temporal_cloud_v0_service_latency_sum{}[1m])
-          ),
-          0
         )
-      ) or vector(0)
+        /
+        sum by(temporal_namespace) (
+          rate(
+            temporal_cloud_v0_poll_success_sync_count{
+              temporal_namespace="123.xyz",
+              task_queue="hello_world"
+            }[1m]
+          )
+        )
+      ) or vector(1)
