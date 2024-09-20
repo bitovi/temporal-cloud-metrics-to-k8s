@@ -22,7 +22,7 @@ spec:
         imagePullPolicy: Always
         ports: []
         volumeMounts:
-        - name: mtls-certs
+        - name: tcm-mtls-certs
           mountPath: "/app/certs"
           readOnly: true
         env:
@@ -37,7 +37,7 @@ spec:
         - name: TEMPORAL_QUEUE
           value: autoscaler_demo
       volumes:
-      - name: mtls-certs
+      - name: tcm-mtls-certs
         secret:
-          secretName: mtls-certs
+          secretName: tcm-mtls-certs
 {{- end }}

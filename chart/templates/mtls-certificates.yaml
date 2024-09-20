@@ -5,5 +5,5 @@ data:
 kind: Secret
 metadata:
   creationTimestamp: null
-  name: mtls-certs
+  name: tcm-mtls-certs
   namespace: {{ .Release.Namespace }}
