@@ -22,7 +22,7 @@ func NewTemporalCloudProvider(temporalCloudAdapter ITemporalCloudAdapter, config
 
 	err := temporalCloudAdapter.Flags().Parse(os.Args)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse flags: %v", err)
+		return nil, fmt.Errorf("failed to parse flags: %v", err)
 	}
 
 	config, err := LoadConfig(configPath)
